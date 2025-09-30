@@ -13,35 +13,6 @@ peek` (min): O(1).
 merge: обычно O(n) если делаем heapify объединённого массива; для priority_queue контейнерного подхода — зависти от реализации.
 Построение (heapify) из массива: O(n).
 
-Примеры реализций
-Python (классическая реализация; note: в реальном коде можно использовать heapq)
-
-python
-class BinaryHeap:
-    def __init__(self):
-        self.a = []
-
-C++ (с использованием vector, пример min-heap)
-
-cpp
-#include <vector>
-#include <stdexcept>
-
-template<typename T>
-class BinaryHeap {
-    std::vector<T> a;
-
-Java (используемая структура — массив → ArrayList; в реальности есть PriorityQueue)
-
-java
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-
-public class BinaryHeap<T extends Comparable<T>> {
-    private List<T> a = new ArrayList<>();
-
-
 2) Биномиальная куча (binomial heap)
 Биномиальная куча — это множество биномиальных деревьев (binomial trees) упорядоченных по степени так, что нет двух деревьев одинаковой степени. Биномиальное дерево B_k — рекурсивно: B_0 — один узел; B_k строится связыванием двух B_{k-1} (один корень становится последним ребёнком другого), и имеет 2^k узлов и степень корня k.
 
@@ -57,55 +28,6 @@ find-min: просмотреть корни — O(log n).
 extract-min: находим корень с минимальным ключом, удаляем его; дети этого корня (развёрнутые в отдельный список, в обратном порядке) объединяем с основной кучей — O(log n).
 decrease-key: поднять ключ и "проталкивать" вверх, при необходимости переставлять узлы — O(log n).
 delete: decrease-key до -∞ + extract-min — O(log n).
-
-Примеры 
-Python 
-
-python
-class BinomialNode:
-    def __init__(self, key):
-        self.key = key
-        self.parent = None
-        self.child = None  # leftmost child
-        self.sibling = None  # right sibling
-        self.degree = 0
-
-def link(b1, b2):
-    # make b2 a child of b1 (assuming b1.key <= b2.key)
-    b2.parent = b1
-    b2.sibling = b1.child
-    b1.child = b2
-    b1.degree += 1
-    return b1
-
-C++ 
-
-cpp
-#include <iostream>
-#include <memory>
-
-template<typename T>
-struct BNode {
-    T key;
-    int degree = 0;
-    BNode* parent = nullptr;
-    BNode* child = nullptr;
-    BNode* sibling = nullptr;
-    BNode(T k): key(k){}
-
-Java 
-
-java
-class BNode<T extends Comparable<T>> {
-    T key;
-    int degree = 0;
-    BNode<T> parent, child, sibling;
-    BNode(T k) { key = k; }
-}
-
-public class BinomialHeap<T extends Comparable<T>> {
-    private BNode<T> head;
-    
 
 3) Куча Фибоначчи (Fibonacci heap)
 Fibonacci-куча — это коллекция корневых деревьев (необязательно биномиальных), в которой поддерживают указатели на минимальный корень. Основная идея: многие операции делаются «лениво» (откладываются) — объединение списков корней/вставка — O(1), а при извлечении минимума выполняется консолидация деревьев по степени. Использует маркировку (mark) для узлов для эффективного decrease-key.
@@ -124,55 +46,6 @@ extract-min (delete-min): удалить минимальный корень `z`
 decrease-key: уменьшаем ключ узла `x`; если после уменьшения x.key < parent.key, разорвать связь x — cut(x,parent) и поместить x в корневой список; если parent был уже отмечен (`mark`), применяется каскадный cut (cut родителя и рекурсивно вверх). Это делает decrease-key амортизированно O(1).
 delete: decrease-key до -∞ + extract-min — амортизированно O(log n).
 
-Примеры 
-Python 
-
-python
-class FibNode:
-    def __init__(self, key):
-        self.key = key
-        self.degree = 0
-        self.mark = False
-        self.parent = None
-        # circular doubly linked list pointers
-        self.left = self
-        self.right = self
-        self.child = None
-
-C++ 
-
-cpp
-template<typename T>
-struct FNode {
-    T key;
-    int degree = 0;
-    bool mark = false;
-    FNode* parent = nullptr;
-    FNode* child = nullptr;
-    FNode* left = this;
-    FNode* right = this;
-    FNode(T k): key(k) {}
-};
-
-  T find_min() { if (!min) throw std::runtime_error("empty"); return min->key; }
-
-
-Java 
-
-java
-class FibNode<T extends Comparable<T>> {
-    T key;
-    int degree;
-    boolean mark;
-    FibNode<T> parent, child, left, right;
-    FibNode(T k) { key = k; left = right = this; }
-}
-
-public class FibonacciHeap<T extends Comparable<T>> {
-    private FibNode<T> min;
-    private int n;
-
-
 Короткое сравнение
 
 Binary heap: простая, компактная, быстрые постоянные факторы; операции `insert`/`extract-min` O(log n). Отлично для очереди с приоритетом, когда decrease-key не частая.
@@ -180,6 +53,7 @@ Binomial heap: поддерживает эффективный `merge` (O(log n)
 Fibonacci heap: даёт лучшие амортизированные сложности: `insert`, `union` и `decrease-key` — O(1) амортизированно, `extract-min` — O(log n) амортизированно. Полезна в алгоритмах, где часто вызывается decrease-key (например, Dijkstra с уменьшениями ключей). На практике более сложна и требует аккуратной реализации; реальные выигрыши заметны при больших n и большом числе decrease-key.
 
 Выводы
+
 Все рассмотренные структуры данных представляют различные подходы к организации информации:
 Кучи обеспечивают эффективную работу с приоритетами, демонстрируя эволюцию от простой бинарной к сложной but эффективной куче Фибоначчи
 Хеш-таблицы решают задачу быстрого доступа по ключу, используя принципиально другой подход на основе хеширования
